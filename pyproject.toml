@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "animation-gif-generator"
+version = "0.1.0"
+description = ""
+authors = ["u-masao <4973920+u-masao@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.36.0"
+imageio = "^2.34.2"
+
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.13.2"
+flake8 = "^7.1.0"
+black = "^24.4.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
