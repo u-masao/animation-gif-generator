@@ -122,6 +122,27 @@ class ImageGenerator:
             text, font_size, x_offset=x_offset, y_offset=y_offset, align=align
         )
 
+    def draw_particle(self, num_particles=20, max_particle_size=10):
+        """
+        粒子を表示する
+        """
+        low = np.array([0, 0, 0, 192, 192, 192])
+        high = np.array(
+            [self.img.width, self.img.height, max_particle_size, 230, 230, 230]
+        )
+        values = np.random.randint(
+            low[:, np.newaxis],
+            high[:, np.newaxis],
+            size=(6, num_particles),
+            dtype=int,
+        ).T
+        for e in values:
+            x = e[0]
+            y = e[1]
+            size = e[2]
+            color = (e[3], e[4], e[5])
+            self.draw.ellipse((x, y, x + size, y + size), fill=color)
+
 
 def create_main_panel(main_panel, gif_bytes, text_input):
 
@@ -145,7 +166,7 @@ def create_control_panel(control_panel):
         font_color = cols[0].color_picker("文字の色", "#E204F7")
         bg_transparent = st.checkbox("背景を透明にする", value=False)
         bg_color = cols[1].color_picker(
-            "背景の色", "#eeeeee", disabled=bg_transparent
+            "背景の色", "#111111", disabled=bg_transparent
         )
         if bg_transparent:
             bg_color = "#00000000"
@@ -180,6 +201,8 @@ def create_control_panel(control_panel):
         total_frames = cols[2].slider(
             "トータルフレーム数:", min_value=1, max_value=50, value=10
         )
+    with control_panel.container(border=True):
+        draw_particle = st.checkbox("パーティクルを表示する", value=True)
 
     return (
         text_input,
@@ -193,6 +216,7 @@ def create_control_panel(control_panel):
         radius,
         fps,
         total_frames,
+        draw_particle,
     )
 
 
@@ -224,6 +248,7 @@ def main():
         radius,
         fps,
         total_frames,
+        draw_particle,
     ) = create_control_panel(control_panel)
 
     # frame 毎に画像を作成
@@ -259,6 +284,9 @@ def main():
                 y_offset=y_offset,
             )
 
+        # 粒子を表示
+        if draw_particle:
+            generator.draw_particle()
         # フレームリストに追加
         frames.append(generator.get_pil_image())
 
