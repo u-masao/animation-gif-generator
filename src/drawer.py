@@ -312,15 +312,19 @@ class ParticleDrawer(Drawer):
         self.max_particle_size = max_particle_size
         self.color = color
         self.tip_count = tip_count
+        self.shape = shape
+
+        # 初期位置
         self.points = np.random.rand(particle_count, 4)
         self.points[:, 2] *= max_particle_size
         self.points[:, 3] = np.random.randn(particle_count) * angle_velocity
+
+        # 変化速度
         self.velocities = (
             np.random.randn(particle_count, 4) * velocity_sigma + velocity_mean
         )
         self.velocities[:, 2] *= max_particle_size
         self.velocities[:, 3] *= angle_velocity
-        self.shape = shape
 
     def make_star_polygon(
         self,
