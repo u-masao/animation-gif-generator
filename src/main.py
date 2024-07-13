@@ -12,7 +12,12 @@ project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 
 from src.animation import Animation  # noqa: E402
-from src.drawer import CircleMoveTextDrawer, FillDrawer, RandomParticleDrawer
+from src.drawer import (
+    CircleMoveTextDrawer,
+    FillDrawer,
+    ParticleDrawer,
+    RandomParticleDrawer,
+)
 
 
 def create_main_panel(main_panel, gif_bytes, text_input):
@@ -129,7 +134,10 @@ def main():
 
     # ランダム粒子を描画
     if draw_particle:
-        drawers.append(RandomParticleDrawer())
+        drawers.append(
+            RandomParticleDrawer(max_particle_size=5, particle_count=20)
+        )
+        drawers.append(ParticleDrawer())
 
     # 移動する文字列を描画
     drawers.append(
