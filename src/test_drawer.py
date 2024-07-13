@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from animation import Animation, Drawer, FillDrawer, RandomParticleDrawer
+from animation import (
+    Animation,
+    Drawer,
+    FillDrawer,
+    RandomParticleDrawer,
+    TextDrawer,
+)
 
 test_output_dir = Path("test_outputs")
 
@@ -72,3 +78,25 @@ def test_random_particle_drawer():
     open(
         test_output_dir / "test_drawer_random_particle_4frame.gif", "wb"
     ).write(animation.render())
+
+
+def test_drawer_text():
+
+    # 条件設定
+    text = "テスト\nテキスト"
+    font_path = "fonts/IPAfont00303/ipag.ttf"
+    bg_color = (32, 32, 32)
+
+    # アニメーション作成
+    animation = Animation()
+
+    # 背景描画
+    FillDrawer(bg_color).draw(animation)
+
+    # テキスト描画
+    TextDrawer(text, font_path=font_path).draw(animation)
+
+    # Assertions
+    open(test_output_dir / "test_drawer_text.gif", "wb").write(
+        animation.render()
+    )

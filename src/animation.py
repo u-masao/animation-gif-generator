@@ -79,6 +79,10 @@ class Animation:
 
 
 class Drawer(ABC):
+    """
+    Animation class に描画するクラスの抽象クラス
+    """
+
     def __init__(self) -> None:
         pass
 
@@ -88,6 +92,10 @@ class Drawer(ABC):
 
 
 class FillDrawer(Drawer):
+    """
+    フレーム全体を指定の色で塗りつぶす Drawer
+    """
+
     def __init__(self, color) -> None:
         super().__init__()
         self.color = color
@@ -96,6 +104,66 @@ class FillDrawer(Drawer):
         for frame in animation.frames:
             draw = ImageDraw.Draw(frame)
             draw.rectangle((0, 0, frame.width, frame.height), fill=self.color)
+
+
+class TextDrawer(Drawer):
+
+    def __init__(
+        self,
+        text: str,
+        font_color: str = "#808080",
+        font_size: float = 20,
+        font_path: str = "fonts/IPAfont00303/ipag.ttf",
+        x_offset: float = 0.0,
+        y_offset: float = 0.0,
+        align: str = "center",
+        spacing: int = 4,
+        stroke_width: int = 0,
+    ):
+        super().__init__()
+        self.text = text
+        self.font_size = font_size
+        self.font_path = font_path
+        self.x_offset = x_offset
+        self.y_offset = y_offset
+        self.align = align
+        self.spacing = spacing
+        self.stroke_width = stroke_width
+        self.font_color = font_color
+
+    def draw(self, animation: Animation) -> None:
+        self.draw_text_simple(animation)
+
+    def draw_text_simple(self, animation: Animation) -> None:
+        """
+        Animation の各フレームに文字を描画する
+        """
+
+        font = ImageFont.truetype(self.font_path, self.font_size)
+
+        for frame in animation.frames:
+            draw = ImageDraw.Draw(frame)
+            _, _, text_width, text_height = draw.multiline_textbbox(
+                (0, 0),
+                self.text,
+                font=font,
+                spacing=self.spacing,
+                anchor="mm",
+                stroke_width=self.stroke_width,
+            )
+            x = (frame.width) / 2 + self.x_offset
+            y = (frame.height) / 2 + self.y_offset
+
+            draw.multiline_text(
+                (x, y),
+                self.text,
+                font=font,
+                fill=self.font_color,
+                anchor="mm",
+                stroke_width=self.stroke_width,
+                spacing=self.spacing,
+                align=self.align,
+            )
 
 
 class RandomParticleDrawer(Drawer):
