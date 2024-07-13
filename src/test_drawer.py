@@ -2,13 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from animation import (
-    Animation,
-    Drawer,
-    FillDrawer,
-    RandomParticleDrawer,
-    TextDrawer,
-)
+from src.animation import Animation
+from src.drawer import Drawer, FillDrawer, RandomParticleDrawer, TextDrawer
 
 test_output_dir = Path("test_outputs")
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from PIL import ImageDraw, ImageFont
 
-from animation import Animation
+from src.animation import Animation
 
 test_output_dir = Path("test_outputs")
 
