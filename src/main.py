@@ -196,7 +196,7 @@ def create_control_panel(control_panel):
             "移動半径:", min_value=0, max_value=64, value=8, step=4
         )
         fps = cols[1].slider(
-            "フレームレート:", min_value=5, max_value=10, value=5
+            "フレームレート:", min_value=1, max_value=10, value=5
         )
         total_frames = cols[2].slider(
             "トータルフレーム数:", min_value=1, max_value=50, value=10
@@ -269,6 +269,10 @@ def main():
         x_offset = float(radius * np.sin(-2 * np.pi * frame_ts))
         y_offset = float(radius * np.cos(-2 * np.pi * frame_ts))
 
+        # 粒子を表示
+        if draw_particle:
+            generator.draw_particle()
+
         # 描画
         if font_size_auto:
             generator.draw_text_auto_fit(
@@ -284,9 +288,6 @@ def main():
                 y_offset=y_offset,
             )
 
-        # 粒子を表示
-        if draw_particle:
-            generator.draw_particle()
         # フレームリストに追加
         frames.append(generator.get_pil_image())
 
