@@ -3,6 +3,7 @@
 Streamlit で動作します。
 """
 
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 import imageio
@@ -75,6 +76,87 @@ class Animation:
             duration=duration,
             loop=loop,
         )
+
+
+class Drawer(ABC):
+    def __init__(self) -> None:
+        pass
+
+    @abstractmethod
+    def draw(self, animation: Animation) -> None:
+        pass
+
+
+class FillDrawer(Drawer):
+    def __init__(self, color) -> None:
+        super().__init__()
+        self.color = color
+
+    def draw(self, animation: Animation) -> None:
+        for frame in animation.frames:
+            draw = ImageDraw.Draw(frame)
+            draw.rectangle((0, 0, frame.width, frame.height), fill=self.color)
+
+
+class RandomParticleDrawer(Drawer):
+    def __init__(
+        self,
+        particle_count=20,
+        max_particle_size=10,
+        color_low=192,
+        color_high=255,
+    ):
+        super().__init__()
+        self.particle_count = particle_count
+        self.max_particle_size = max_particle_size
+        self.color_low = color_low
+        self.color_high = color_high
+
+    def draw(self, animation: Animation) -> None:
+        """
+        ランダムな場所にランダムなサイズの粒子を表示する
+        """
+
+        # 下限値
+        low = np.array(
+            [0, 0, 1, self.color_low, self.color_low, self.color_low]
+        )
+
+        # 上限値
+        high = np.array(
+            [
+                animation.frame_width,
+                animation.frame_height,
+                self.max_particle_size,
+                self.color_high,
+                self.color_high,
+                self.color_high,
+            ]
+        )
+
+        # フレームごとに処理
+        for frame in animation.frames:
+
+            # ランダム値を生成
+            params = np.random.randint(
+                low[:, np.newaxis],
+                high[:, np.newaxis],
+                size=(6, self.particle_count),
+                dtype=int,
+            ).T
+
+            # フレームから ImageDraw を取得
+            draw = ImageDraw.Draw(frame)
+            for param in params:
+
+                # 座標計算など
+                size = param[2]
+                x = param[0] - size // 2
+                y = param[1] - size // 2
+                color = (param[3], param[4], param[5])
+
+                # 描画
+                draw.ellipse((x, y, x + size, y + size), fill=color)
 
 
 class ImageGenerator:
