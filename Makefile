@@ -16,3 +16,6 @@ unzip-fonts: fonts/IPAfont00303.zip
 
 fonts/IPAfont00303.zip:
 	wget https://moji.or.jp/wp-content/ipafont/IPAfont/IPAfont00303.zip -O fonts/IPAfont00303.zip
+
+setup:
+	poetry install
