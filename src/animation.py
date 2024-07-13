@@ -65,12 +65,10 @@ class Animation:
 
     def add_drawer(self, drawer):
         self.drawers.append(drawer)
-        return self
 
     def add_drawers(self, drawers):
         for drawer in drawers:
             self.add_drawer(drawer)
-        return self
 
     def render(self, format: str = "GIF", duration: int = 1000, loop: int = 0):
         """
@@ -86,24 +84,3 @@ class Animation:
             duration=duration,
             loop=loop,
         )
-
-
-def main():
-
-    from src.drawer import FillDrawer, RandomParticleDrawer, TextDrawer
-
-    text = "いい\n天気"
-    frame_count = 5
-    animation = Animation(frame_count=frame_count)
-    animation.add_drawers(
-        [
-            FillDrawer(),
-            RandomParticleDrawer(),
-            TextDrawer(text, enable_fit_text_to_frame=True),
-        ]
-    )
-    open("test_outputs/demo.gif", "wb").write(animation.render())
-
-
-if __name__ == "__main__":
-    main()
