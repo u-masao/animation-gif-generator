@@ -3,7 +3,14 @@ from pathlib import Path
 import pytest
 
 from src.animation import Animation
-from src.drawer import Drawer, FillDrawer, RandomParticleDrawer, TextDrawer, CircleMoveTextDrawer
+from src.drawer import (
+    CircleMoveTextDrawer,
+    Drawer,
+    FillDrawer,
+    ParticleDrawer,
+    RandomParticleDrawer,
+    TextDrawer,
+)
 
 test_output_dir = Path("test_outputs")
 
@@ -96,6 +103,7 @@ def test_drawer_text():
         animation.render()
     )
 
+
 def test_drawer_circle_move_text():
 
     # 条件設定
@@ -114,5 +122,51 @@ def test_drawer_circle_move_text():
 
     # Assertions
     open(test_output_dir / "test_drawer_circle_move_text.gif", "wb").write(
+        animation.render(duration=100)
+    )
+
+
+def test_particle_drawer():
+
+    # アニメーション作成
+    animation = Animation(frame_count=36)
+
+    # 背景描画
+    FillDrawer().draw(animation)
+
+    # 星を描画
+    ParticleDrawer().draw(animation)
+
+    # Assertions
+    open(test_output_dir / "test_particle_drawer_default.gif", "wb").write(
+        animation.render(duration=50)
+    )
+
+
+def test_particle_drawer_circle():
+
+    # 変数を設定
+    font_path = "fonts/IPAfont00303/ipag.ttf"
+
+    # アニメーション作成
+    animation = Animation(frame_count=10)
+
+    # 背景描画
+    FillDrawer().draw(animation)
+
+    # 円を描画
+    ParticleDrawer(shape="circle").draw(animation)
+
+    # テキスト描画
+    CircleMoveTextDrawer(
+        "あざ\nます",
+        radius=10,
+        enable_fit_text_to_frame=True,
+        font_color=(255, 0, 0, 255),
+        font_path=font_path,
+    ).draw(animation)
+
+    # Assertions
+    open(test_output_dir / "test_particle_drawer_circle.gif", "wb").write(
         animation.render(duration=100)
     )
