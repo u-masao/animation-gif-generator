@@ -19,3 +19,6 @@ fonts/IPAfont00303.zip:
 
 setup:
 	poetry install
+
+test:
+	poetry run pytest -s src
