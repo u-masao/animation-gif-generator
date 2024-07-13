@@ -4,9 +4,9 @@ run-ui:
 	PYTHONPATH=.. poetry run streamlit run src/main.py
 
 lint:
-	poetry run isort src
-	poetry run black src -l 79
-	poetry run flake8 src --ignore E402
+	poetry run isort src tests
+	poetry run black src tests -l 79
+	poetry run flake8 src tests --ignore E402
 
 fonts: font
 font: unzip-fonts

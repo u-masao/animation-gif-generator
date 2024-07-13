@@ -285,3 +285,102 @@ class CircleMoveTextDrawer(TextDrawer):
 
             # 描画
             self.draw_text_simple(frame, x_offset=x_offset, y_offset=y_offset)
+
+
+class ParticleDrawer(Drawer):
+    """
+    星を描画する。
+    フレームごとに場所は変えず、角度がかわる
+    """
+
+    def __init__(
+        self,
+        particle_count: int = 20,
+        max_particle_size: int = 30,
+        shape: str = "star",
+        tip_count: int = 5,
+        color: Tuple[int, int, int, int] = (255, 255, 0, 255),  # yellow
+        velocity_mean: float = 0.0,
+        velocity_sigma: float = 0.05,
+        angle_velocity: float = 0.2,
+    ):
+        """
+        コンストラクタ
+        """
+        super().__init__()
+        self.particle_count = particle_count
+        self.max_particle_size = max_particle_size
+        self.color = color
+        self.tip_count = tip_count
+        self.points = np.random.rand(particle_count, 4)
+        self.points[:, 2] *= max_particle_size
+        self.points[:, 3] = np.random.randn(particle_count) * angle_velocity
+        self.velocities = (
+            np.random.randn(particle_count, 4) * velocity_sigma + velocity_mean
+        )
+        self.velocities[:, 2] *= max_particle_size
+        self.velocities[:, 3] *= angle_velocity
+        self.shape = shape
+
+    def make_star_polygon(
+        self,
+        center_x: int,
+        center_y: int,
+        tip_count: int = 5,
+        radius: float = 30.0,
+        angle: float = np.pi / 2.0,
+    ):
+
+        points = []
+
+        for i in range(tip_count * 2):
+            r = radius if i % 2 == 0 else radius * 0.4
+            x = center_x + r * np.cos(angle)
+            y = center_y + r * np.sin(angle)
+            points.append((x, y))
+            angle += np.pi / tip_count
+
+        return points
+
+    def draw(self, animation: Animation) -> None:
+        """
+        ランダムな場所にランダムなサイズの粒子を表示する
+        """
+
+        # フレームごとに処理
+        for frame_index, frame in enumerate(animation.frames):
+
+            # フレームから ImageDraw を取得
+            draw = ImageDraw.Draw(frame)
+
+            # 粒子毎に処理
+            for point in self.points:
+
+                if self.shape == "star":
+                    # 星型のポリゴンを計算
+                    polygon_data = self.make_star_polygon(
+                        center_x=point[0] * frame.width,
+                        center_y=point[1] * frame.height,
+                        tip_count=self.tip_count,
+                        radius=point[2],
+                        angle=2 * np.pi * point[3],
+                    )
+
+                    # ポリゴンを描画
+                    draw.polygon(
+                        polygon_data, fill=self.color, outline=self.color
+                    )
+                elif self.shape == "circle":
+                    # 円を描画
+                    draw.circle(
+                        (point[0] * frame.width, point[1] * frame.height),
+                        np.abs(point[2]),
+                        fill=self.color,
+                    )
+                else:
+                    ValueError(
+                        f"その shape はサポートしていません。: {self.shape}"
+                    )
+
+            # 粒子を移動
+            self.points += self.velocities
