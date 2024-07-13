@@ -1,7 +1,16 @@
+from pathlib import Path
+
 import pytest
 from PIL import ImageDraw, ImageFont
 
 from animation import Animation
+
+test_output_dir = Path("test_outputs")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def make_output_dir():
+    test_output_dir.mkdir(parents=True, exist_ok=True)
 
 
 def test_animation_init():
@@ -49,7 +58,7 @@ def test_frame_content():
     )
 
     # 描画されたフレームを保存して目視確認する例（必要に応じて）
-    frame.save("test_frame.gif")
+    frame.save(test_output_dir / "test_frame.gif")
 
 
 # 追加のテスト: アニメーション
@@ -73,4 +82,6 @@ def test_animation():
         )
 
     # 描画されたフレームを保存して目視確認する例（必要に応じて）
-    open("test_animation.gif", "wb").write(animation.render())
+    open(test_output_dir / "test_animation.gif", "wb").write(
+        animation.render()
+    )
