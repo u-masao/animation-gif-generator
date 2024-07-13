@@ -1,3 +1,4 @@
 *.sw[po]
 /fonts/
 __pycache__
+/test_outputs/

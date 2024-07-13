@@ -3,148 +3,22 @@
 Streamlit で動作します。
 """
 
-import imageio
-import numpy as np
+import sys
+from pathlib import Path
+
 import streamlit as st
-from PIL import Image, ImageDraw, ImageFont
 
+project_root = Path(__file__).resolve().parent.parent
+sys.path.append(str(project_root))
 
-class ImageGenerator:
-    """
-    Pillow ライブラリを利用して画像データを作成します
-    """
-
-    def __init__(
-        self,
-        image_size: int = 128,
-        bg_color: str = "black",
-        font_color: str = "green",
-        stroke_width: int = 1,
-        font_path: str = "fonts/IPAfont00303/ipag.ttf",
-        spacing: float = 4.0,
-    ):
-        """
-        コンストラクタ
-        Pillow Image を初期化して背景を描画します。
-        """
-        self.bg_color = bg_color
-        self.font_color = font_color
-        self.stroke_width = stroke_width
-        self.font_path = font_path
-        self.spacing = spacing
-
-        self.img = Image.new(
-            "RGBA", (image_size, image_size), color=(255, 255, 255, 0)
-        )
-        self.draw = ImageDraw.Draw(self.img)
-        self.fill_background()
-
-    def get_pil_image(self):
-        """
-        画像データを返します
-        """
-        return self.img
-
-    def fill_background(self):
-        """
-        背景を描画します
-        """
-        self.draw.rectangle(
-            (0, 0, self.img.width, self.img.height), fill=self.bg_color
-        )
-
-    def _getbbox_split_lines(self, text, font):
-        """
-        文字列を改行で分割して Bounding Box のサイズを計算します
-        """
-        text_by_line = text.split("\n")
-
-        width = max([font.getbbox(x)[2] for x in text_by_line])
-        height = sum(
-            [
-                font.getbbox(x, stroke_width=self.stroke_width)[3]
-                + self.spacing
-                + self.stroke_width
-                for x in text_by_line
-            ]
-        )
-        return width, height
-
-    def draw_text(
-        self,
-        text: str,
-        font_size: float = None,
-        x_offset: float = 0.0,
-        y_offset: float = 0.0,
-        align: str = "center",
-    ):
-
-        # 指定のフォントサイズで描画
-        font = ImageFont.truetype(self.font_path, font_size)
-        text_width, text_height = self._getbbox_split_lines(
-            text,
-            font,
-        )
-        x = (self.img.width) / 2 + x_offset
-        y = (self.img.height) / 2 + y_offset
-
-        self.draw.multiline_text(
-            (x, y),
-            text,
-            font=font,
-            fill=self.font_color,
-            anchor="mm",
-            stroke_width=self.stroke_width,
-            spacing=self.spacing,
-            align=align,
-        )
-
-    def draw_text_auto_fit(
-        self,
-        text: str,
-        x_offset: float = 0.0,
-        y_offset: float = 0.0,
-        align: str = "center",
-    ):
-        # 計測用の仮のフォントで幅と高さを計算
-        temp_font_size = 100.0
-        font = ImageFont.truetype(self.font_path, temp_font_size)
-        text_width, text_height = self._getbbox_split_lines(
-            text,
-            font,
-        )
-        ratio = max(text_width / self.img.width, text_height / self.img.height)
-
-        # フィットするフォントサイズを設定
-        font_size = temp_font_size / ratio
-
-        self.draw_text(
-            text, font_size, x_offset=x_offset, y_offset=y_offset, align=align
-        )
-
-    def draw_particle(self, num_particles=20, max_particle_size=10):
-        """
-        粒子を表示する
-        """
-        low = np.array([0, 0, 0, 192, 192, 192])
-        high = np.array(
-            [self.img.width, self.img.height, max_particle_size, 230, 230, 230]
-        )
-        values = np.random.randint(
-            low[:, np.newaxis],
-            high[:, np.newaxis],
-            size=(6, num_particles),
-            dtype=int,
-        ).T
-        for e in values:
-            x = e[0]
-            y = e[1]
-            size = e[2]
-            color = (e[3], e[4], e[5])
-            self.draw.ellipse((x, y, x + size, y + size), fill=color)
+from src.animation import Animation  # noqa: E402
+from src.drawer import CircleMoveTextDrawer, FillDrawer, RandomParticleDrawer
 
 
 def create_main_panel(main_panel, gif_bytes, text_input):
+    """
+    メインパネルの中身を配置
+    """
 
     # GIF データ表示
     main_panel.image(gif_bytes)
@@ -157,6 +31,9 @@ def create_main_panel(main_panel, gif_bytes, text_input):
 
 
 def create_control_panel(control_panel):
+    """
+    コントロールパネルの中身を配置
+    """
     text_input = control_panel.text_area(
         "画像に入れたい文字:", value="あざ\nます"
     ).strip()
@@ -198,7 +75,7 @@ def create_control_panel(control_panel):
         fps = cols[1].slider(
             "フレームレート:", min_value=1, max_value=10, value=5
         )
-        total_frames = cols[2].slider(
+        frame_count = cols[2].slider(
             "トータルフレーム数:", min_value=1, max_value=50, value=10
         )
     with control_panel.container(border=True):
@@ -215,19 +92,12 @@ def create_control_panel(control_panel):
         spacing,
         radius,
         fps,
-        total_frames,
+        frame_count,
         draw_particle,
     )
 
 
 def main():
-    """
-    メイン処理
-    """
-
-    # フォントを指定
-    font_path = "fonts/IPAfont00303/ipag.ttf"
-    image_size: int = 128  # slack 公式に絵文字サイズの記載あり
 
     # タイトルを描画
     st.title("文字 GIF メーカー")
@@ -247,56 +117,46 @@ def main():
         spacing,
         radius,
         fps,
-        total_frames,
+        frame_count,
         draw_particle,
     ) = create_control_panel(control_panel)
 
-    # frame 毎に画像を作成
-    frames = []
-    for frame_ts in np.linspace(0, 1, total_frames, endpoint=False):
+    # Drawer を初期化
+    drawers = []
 
-        # フレームを初期化
-        generator = ImageGenerator(
-            image_size=image_size,
-            bg_color=bg_color,
+    # 背景を描画
+    drawers.append(FillDrawer(color=bg_color))
+
+    # ランダム粒子を描画
+    if draw_particle:
+        drawers.append(RandomParticleDrawer())
+
+    # 移動する文字列を描画
+    drawers.append(
+        CircleMoveTextDrawer(
+            text_input,
+            enable_fit_text_to_frame=font_size_auto,
+            radius=radius,
             font_color=font_color,
+            font_size=font_size,
             stroke_width=stroke_width,
-            font_path=font_path,
             spacing=spacing,
         )
-
-        # 描画位置を決める
-        x_offset = float(radius * np.sin(-2 * np.pi * frame_ts))
-        y_offset = float(radius * np.cos(-2 * np.pi * frame_ts))
-
-        # 粒子を表示
-        if draw_particle:
-            generator.draw_particle()
-
-        # 描画
-        if font_size_auto:
-            generator.draw_text_auto_fit(
-                text_input,
-                x_offset=x_offset,
-                y_offset=y_offset,
-            )
-        else:
-            generator.draw_text(
-                text_input,
-                font_size=font_size,
-                x_offset=x_offset,
-                y_offset=y_offset,
-            )
-
-        # フレームリストに追加
-        frames.append(generator.get_pil_image())
-
-    # GIF データ作成
-    gif_bytes = imageio.mimsave(
-        imageio.RETURN_BYTES, frames, format="GIF", fps=fps, loop=0
     )
 
-    # GIF データを描画
+    # コマの更新間隔を設定
+    duration_ms = 1000.0 / fps
+
+    # Animation インスタンスを初期化
+    animation = Animation(frame_count=frame_count)
+
+    # drawer を追加
+    animation.add_drawers(drawers)
+
+    # レンダリング
+    gif_bytes = animation.render(duration=duration_ms)
+
+    # 画面出力
     create_main_panel(main_panel, gif_bytes, text_input)
 
 

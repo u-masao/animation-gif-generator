@@ -1,12 +1,12 @@
 ui: run-ui
 run: run-ui
 run-ui:
-	poetry run streamlit run src/main.py
+	PYTHONPATH=.. poetry run streamlit run src/main.py
 
 lint:
 	poetry run isort src
 	poetry run black src -l 79
-	poetry run flake8 src
+	poetry run flake8 src --ignore E402
 
 fonts: font
 font: unzip-fonts
@@ -19,3 +19,6 @@ fonts/IPAfont00303.zip:
 
 setup:
 	poetry install
+
+test:
+	PYTHONPATH=. poetry run pytest -s tests
