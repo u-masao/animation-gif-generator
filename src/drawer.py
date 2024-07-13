@@ -3,7 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -106,7 +106,12 @@ class TextDrawer(Drawer):
 
             self.draw_text_simple(frame)
 
-    def draw_text_simple(self, frame: Image) -> None:
+    def draw_text_simple(
+        self,
+        frame: Image,
+        x_offset: Optional[float] = None,
+        y_offset: Optional[float] = None,
+    ) -> None:
         """
         フレームに文字を描画する
         """
@@ -118,9 +123,14 @@ class TextDrawer(Drawer):
         if self.enable_fit_text_to_frame:
             self.fit_text_to_frame(frame)
 
+        if x_offset is None:
+            x_offset = self.x_offset
+        if y_offset is None:
+            y_offset = self.y_offset
+
         # 座標を計算
-        x = (frame.width) / 2 + self.x_offset
-        y = (frame.height) / 2 + self.y_offset
+        x = (frame.width) / 2 + x_offset
+        y = (frame.height) / 2 + y_offset
 
         # テキストを描画
         draw.multiline_text(
@@ -174,6 +184,7 @@ class TextDrawer(Drawer):
 
         # フィットするフォントサイズを設定
         self.font_size = temp_font_size / ratio
+        self._update_font()
 
     def _update_font(self) -> None:
         self.font = ImageFont.truetype(self.font_path, self.font_size)
@@ -245,3 +256,32 @@ class RandomParticleDrawer(Drawer):
 
                 # 描画
                 draw.ellipse((x, y, x + size, y + size), fill=color)
+
+
+class CircleMoveTextDrawer(TextDrawer):
+
+    def __init__(
+        self,
+        text: str,
+        radius: float = 32.0,
+        **kwargs,
+    ) -> None:
+        super().__init__(text, **kwargs)
+        self.radius: float = radius
+
+    def draw(self, animation: Animation) -> None:
+        """
+        文字を描画
+        """
+
+        for frame_index, frame in enumerate(animation.frames):
+
+            # frame timestamp を作成
+            frame_ts = frame_index / len(animation.frames)
+
+            # 描画位置を決める
+            x_offset = float(self.radius * np.sin(-2 * np.pi * frame_ts))
+            y_offset = float(self.radius * np.cos(-2 * np.pi * frame_ts))
+
+            # 描画
+            self.draw_text_simple(frame, x_offset=x_offset, y_offset=y_offset)
