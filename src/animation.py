@@ -84,10 +84,16 @@ class Drawer(ABC):
     """
 
     def __init__(self) -> None:
+        """
+        コンストラクタ
+        """
         pass
 
     @abstractmethod
     def draw(self, animation: Animation) -> None:
+        """
+        描画
+        """
         pass
 
 
@@ -97,76 +103,116 @@ class FillDrawer(Drawer):
     """
 
     def __init__(self, color) -> None:
+        """
+        コンストラクタ
+        """
         super().__init__()
         self.color = color
 
     def draw(self, animation: Animation) -> None:
+        """
+        単一色で塗りつぶし
+        """
         for frame in animation.frames:
             draw = ImageDraw.Draw(frame)
             draw.rectangle((0, 0, frame.width, frame.height), fill=self.color)
 
 
 class TextDrawer(Drawer):
+    """
+    文字を描画するクラス
+    """
 
     def __init__(
         self,
         text: str,
-        font_color: str = "#808080",
-        font_size: float = 20,
-        font_path: str = "fonts/IPAfont00303/ipag.ttf",
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         align: str = "center",
+        anchor: str = "mm",
         spacing: int = 4,
         stroke_width: int = 0,
-    ):
+        font_color: str = "#808080",
+        font_size: float = 20,
+        font_path: str = "fonts/IPAfont00303/ipag.ttf",
+    ) -> None:
+        """
+        コンストラクタ
+        """
         super().__init__()
+
+        # テキスト
         self.text = text
-        self.font_size = font_size
-        self.font_path = font_path
+
+        # 位置指定
         self.x_offset = x_offset
         self.y_offset = y_offset
         self.align = align
+        self.anchor = anchor
         self.spacing = spacing
+
+        # font
         self.stroke_width = stroke_width
         self.font_color = font_color
+        self.font_size = font_size
+        self.font_path = font_path
+        self.font = ImageFont.truetype(font_path, font_size)
 
     def draw(self, animation: Animation) -> None:
-        self.draw_text_simple(animation)
-
-    def draw_text_simple(self, animation: Animation) -> None:
         """
-        Animation の各フレームに文字を描画する
+        文字を描画
         """
 
-        font = ImageFont.truetype(self.font_path, self.font_size)
+        for frame_index, frame in enumerate(animation.frames):
+            self.draw_text_simple(frame)
 
-        for frame in animation.frames:
-            draw = ImageDraw.Draw(frame)
-            _, _, text_width, text_height = draw.multiline_textbbox(
-                (0, 0),
-                self.text,
-                font=font,
-                spacing=self.spacing,
-                anchor="mm",
-                stroke_width=self.stroke_width,
-            )
-            x = (frame.width) / 2 + self.x_offset
-            y = (frame.height) / 2 + self.y_offset
+    def getbbox(self, draw: ImageDraw) -> Tuple[int]:
+        """
+        文字列を描画する際の幅と高さを取得
+        """
 
-            draw.multiline_text(
-                (x, y),
-                self.text,
-                font=font,
-                fill=self.font_color,
-                anchor="mm",
-                stroke_width=self.stroke_width,
-                spacing=self.spacing,
-                align=self.align,
-            )
+        # テキストのサイズを取得
+        left, top, text_width, text_height = draw.multiline_textbbox(
+            (0, 0),
+            self.text,
+            font=self.font,
+            spacing=self.spacing,
+            anchor=self.anchor,
+            stroke_width=self.stroke_width,
+        )
+
+        return (text_width - left), (text_height - top)
+
+    def draw_text_simple(self, frame: Image) -> None:
+        """
+        フレームに文字を描画する
+        """
+
+        # ImageDraw を取得
+        draw = ImageDraw.Draw(frame)
+
+        # 座標を計算
+        x = (frame.width) / 2 + self.x_offset
+        y = (frame.height) / 2 + self.y_offset
+
+        # テキストを描画
+        draw.multiline_text(
+            (x, y),
+            self.text,
+            font=self.font,
+            fill=self.font_color,
+            anchor=self.anchor,
+            stroke_width=self.stroke_width,
+            spacing=self.spacing,
+            align=self.align,
+        )
 
 
 class RandomParticleDrawer(Drawer):
+    """
+    ランダムな粒子を描画する
+    """
+
     def __init__(
         self,
         particle_count=20,
@@ -174,6 +220,9 @@ class RandomParticleDrawer(Drawer):
         color_low=192,
         color_high=255,
     ):
+        """
+        コンストラクタ
+        """
         super().__init__()
         self.particle_count = particle_count
         self.max_particle_size = max_particle_size
