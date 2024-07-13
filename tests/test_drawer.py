@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from src.animation import Animation
-from src.drawer import Drawer, FillDrawer, RandomParticleDrawer, TextDrawer
+from src.drawer import Drawer, FillDrawer, RandomParticleDrawer, TextDrawer, CircleMoveTextDrawer
 
 test_output_dir = Path("test_outputs")
 
@@ -94,4 +94,25 @@ def test_drawer_text():
     # Assertions
     open(test_output_dir / "test_drawer_text.gif", "wb").write(
         animation.render()
+    )
+
+def test_drawer_circle_move_text():
+
+    # 条件設定
+    text = "テスト\nテキスト"
+    font_path = "fonts/IPAfont00303/ipag.ttf"
+    bg_color = (32, 32, 32)
+
+    # アニメーション作成
+    animation = Animation(frame_count=10)
+
+    # 背景描画
+    FillDrawer(bg_color).draw(animation)
+
+    # テキスト描画
+    CircleMoveTextDrawer(text, radius=10, font_path=font_path).draw(animation)
+
+    # Assertions
+    open(test_output_dir / "test_drawer_circle_move_text.gif", "wb").write(
+        animation.render(duration=100)
     )
