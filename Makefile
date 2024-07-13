@@ -21,4 +21,4 @@ setup:
 	poetry install
 
 test:
-	poetry run pytest -s src
+	PYTHONPATH=. poetry run pytest -s tests
