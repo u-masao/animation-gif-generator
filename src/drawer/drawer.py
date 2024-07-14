@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from src.animation import Animation
+from src import Animation
 
 
 class Drawer(ABC):

@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from src.animation import Animation
-from src.drawer import (
+from src import (
+    Animation,
     CircleMoveTextDrawer,
+    CometDrawer,
     Drawer,
     FillDrawer,
     ParticleDrawer,
@@ -169,4 +170,21 @@ def test_particle_drawer_circle():
     # Assertions
     open(test_output_dir / "test_particle_drawer_circle.gif", "wb").write(
         animation.render(duration=100)
+    )
+
+
+def test_comet_drawer():
+
+    # アニメーション作成
+    animation = Animation(frame_count=20)
+
+    # 背景描画
+    FillDrawer().draw(animation)
+
+    # 円を描画
+    CometDrawer().draw(animation)
+
+    # Assertions
+    open(test_output_dir / "test_comet_drawer.gif", "wb").write(
+        animation.render(duration=200)
     )

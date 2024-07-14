@@ -6,7 +6,7 @@ run-ui:
 lint:
 	poetry run isort src tests
 	poetry run black src tests -l 79
-	poetry run flake8 src tests --ignore E402
+	poetry run flake8 src tests --ignore=E402
 
 fonts: font
 font: unzip-fonts
