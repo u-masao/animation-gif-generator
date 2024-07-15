@@ -4,9 +4,11 @@ Streamlit で動作します。
 """
 
 import sys
+import time
 from pathlib import Path
 
 import streamlit as st
+from matplotlib.colors import to_rgba
 
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
@@ -21,7 +23,15 @@ from src import (
 )
 
 
-def create_main_panel(main_panel, gif_bytes, text_input):
+def hex_to_rgba(hex_color):
+
+    rgba_color = to_rgba(hex_color)
+    rgba_tuple = tuple(int(x * 255) for x in rgba_color)
+
+    return rgba_tuple
+
+
+def create_main_panel(main_panel, gif_bytes, text_input, render_period):
     """
     メインパネルの中身を配置
     """
@@ -29,28 +39,24 @@ def create_main_panel(main_panel, gif_bytes, text_input):
     # GIF データ表示
     main_panel.image(gif_bytes)
 
-    # データサイズ表示
-    main_panel.metric("ファイルサイズ(KB)", len(gif_bytes) // 1024)
-
     # ダウンロード
     download_filename = text_input.replace("\n", "") + ".gif"
     main_panel.download_button(
         "画像をダウンロード", gif_bytes, file_name=download_filename
     )
 
+    # 情報表示
+    main_panel.metric("レンダリング時間(ms)", int(render_period * 1000))
+    main_panel.metric("ファイルサイズ(KB)", len(gif_bytes) // 1024)
+
 
 def create_control_panel(control_panel):
     """
     コントロールパネルの中身を配置
     """
-    text_input = control_panel.text_area(
-        "画像に入れたい文字:", value="あざ\nます"
-    ).strip()
 
     with control_panel.container(border=True):
-        draw_comet = st.checkbox("彗星を表示する", value=True)
-
-    with control_panel.container(border=True):
+        text_input = st.text_area("メッセージ:", value="あざ\nます").strip()
         cols = st.columns(2)
         font_color = cols[0].color_picker("文字の色", "#E204F7")
         bg_transparent = st.checkbox("背景を透明にする", value=False)
@@ -59,6 +65,10 @@ def create_control_panel(control_panel):
         )
         if bg_transparent:
             bg_color = "#00000000"
+
+    with control_panel.container(border=True):
+        draw_comet = st.checkbox("彗星を表示する", value=True)
+        draw_particle = st.checkbox("パーティクルを表示する", value=False)
 
     with control_panel.container(border=True):
         cols = st.columns(3)
@@ -85,14 +95,11 @@ def create_control_panel(control_panel):
             "移動半径:", min_value=0, max_value=64, value=8, step=4
         )
         fps = cols[1].slider(
-            "フレームレート:", min_value=1, max_value=10, value=5
+            "フレームレート:", min_value=1, max_value=20, value=10
         )
         frame_count = cols[2].slider(
-            "トータルフレーム数:", min_value=1, max_value=50, value=10
+            "トータルフレーム数:", min_value=1, max_value=50, value=30
         )
-
-    with control_panel.container(border=True):
-        draw_particle = st.checkbox("パーティクルを表示する", value=False)
 
     return (
         text_input,
@@ -144,7 +151,7 @@ def main():
 
     # ランダム粒子を描画
     if draw_comet:
-        drawers.append(CometDrawer())
+        drawers.append(CometDrawer(bg_color=hex_to_rgba(bg_color)))
 
     # ランダム粒子を描画
     if draw_particle:
@@ -166,20 +173,22 @@ def main():
         )
     )
 
-    # コマの更新間隔を設定
-    duration_ms = 1000.0 / fps
-
+    ts_start = time.perf_counter()
     # Animation インスタンスを初期化
     animation = Animation(frame_count=frame_count)
 
     # drawer を追加
     animation.add_drawers(drawers)
 
+    # コマの更新間隔を設定
+    duration_ms = 1000.0 / fps
+
     # レンダリング
     gif_bytes = animation.render(duration=duration_ms)
+    render_period = time.perf_counter() - ts_start
 
     # 画面出力
-    create_main_panel(main_panel, gif_bytes, text_input)
+    create_main_panel(main_panel, gif_bytes, text_input, render_period)
 
 
 if __name__ == "__main__":
