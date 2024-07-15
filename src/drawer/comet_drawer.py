@@ -6,7 +6,7 @@
   - 核は初期位置、速度、を持ち、等速運動する
 - 核はコマを持つ
   - コマは核の周囲を明るくし、核と共に移動する(描画のみで対応)
-- 彗星は粒子を放出する(Particle)
+- 彗星は粒子を放出する(comet dust)
   - 粒子は初期位置、速度、加速度、明るさ、明るさの減衰率を持つ
   - 粒子は核から確率的に生成される
   - 粒子は核の進行方向の逆向きに進む
@@ -149,6 +149,7 @@ class Nucleus(DrawableParticle):
         dust_genarate_prob: float = 10.0,
         star_tip_count: int = 5,
         brightness_change_ratio: float = 1.0,
+        dust_size: float = 20.0,
         *args,
         **kwargs,
     ):
@@ -162,6 +163,7 @@ class Nucleus(DrawableParticle):
             **kwargs,
         )
         self.dust_genarate_prob = dust_genarate_prob
+        self.dust_size = dust_size
 
     def update(self, delta_time: float) -> List[CometDust]:
         """
@@ -208,7 +210,13 @@ class Nucleus(DrawableParticle):
         )
 
         # CometDust インスタンスを返す
-        return CometDust(position=dust_position, velocity=dust_velocity)
+        return CometDust(
+            position=dust_position,
+            velocity=dust_velocity,
+            color=self.color,
+            bg_color=self.bg_color,
+            size=self.dust_size,
+        )
 
     def draw(self, frame: Image):
         super().draw_particle(frame)
@@ -222,12 +230,32 @@ class CometDrawer(Drawer):
     def __init__(
         self,
         delta_time: float = 1.0,
+        color: Tuple[int] = (255, 255, 0, 255),
+        bg_color: Tuple[int] = (32, 32, 32, 255),
+        comet_size: float = 32,
+        dust_size: float = 10,
     ):
         """
         コンストラクタ
         """
         super().__init__()
-        self.nucleus = Nucleus()
+
+        # 彗星の初期位置を計算
+        theta = np.random.rand(1) * 2.0 * np.pi
+        position_on_unit_circle = np.array(
+            [np.cos(theta), np.sin(theta)]
+        ).flatten()
+        position = 1.5 * position_on_unit_circle + 0.5
+        velocity = -0.1 * position_on_unit_circle
+
+        self.nucleus = Nucleus(
+            color=color,
+            bg_color=bg_color,
+            position=position,
+            velocity=velocity,
+            size=comet_size,
+            dust_size=dust_size,
+        )
         self.dusts = []
         self.delta_time = delta_time
 
