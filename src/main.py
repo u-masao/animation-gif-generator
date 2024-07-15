@@ -29,6 +29,9 @@ def create_main_panel(main_panel, gif_bytes, text_input):
     # GIF データ表示
     main_panel.image(gif_bytes)
 
+    # データサイズ表示
+    main_panel.metric("ファイルサイズ(KB)", len(gif_bytes) // 1024)
+
     # ダウンロード
     download_filename = text_input.replace("\n", "") + ".gif"
     main_panel.download_button(
