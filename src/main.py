@@ -11,9 +11,10 @@ import streamlit as st
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 
-from src.animation import Animation  # noqa: E402
-from src.drawer import (
+from src import (
+    Animation,
     CircleMoveTextDrawer,
+    CometDrawer,
     FillDrawer,
     ParticleDrawer,
     RandomParticleDrawer,
@@ -27,6 +28,9 @@ def create_main_panel(main_panel, gif_bytes, text_input):
 
     # GIF データ表示
     main_panel.image(gif_bytes)
+
+    # データサイズ表示
+    main_panel.metric("ファイルサイズ(KB)", len(gif_bytes) // 1024)
 
     # ダウンロード
     download_filename = text_input.replace("\n", "") + ".gif"
@@ -42,6 +46,9 @@ def create_control_panel(control_panel):
     text_input = control_panel.text_area(
         "画像に入れたい文字:", value="あざ\nます"
     ).strip()
+
+    with control_panel.container(border=True):
+        draw_comet = st.checkbox("彗星を表示する", value=True)
 
     with control_panel.container(border=True):
         cols = st.columns(2)
@@ -83,8 +90,9 @@ def create_control_panel(control_panel):
         frame_count = cols[2].slider(
             "トータルフレーム数:", min_value=1, max_value=50, value=10
         )
+
     with control_panel.container(border=True):
-        draw_particle = st.checkbox("パーティクルを表示する", value=True)
+        draw_particle = st.checkbox("パーティクルを表示する", value=False)
 
     return (
         text_input,
@@ -99,6 +107,7 @@ def create_control_panel(control_panel):
         fps,
         frame_count,
         draw_particle,
+        draw_comet,
     )
 
 
@@ -124,6 +133,7 @@ def main():
         fps,
         frame_count,
         draw_particle,
+        draw_comet,
     ) = create_control_panel(control_panel)
 
     # Drawer を初期化
@@ -131,6 +141,10 @@ def main():
 
     # 背景を描画
     drawers.append(FillDrawer(color=bg_color))
+
+    # ランダム粒子を描画
+    if draw_comet:
+        drawers.append(CometDrawer())
 
     # ランダム粒子を描画
     if draw_particle:
