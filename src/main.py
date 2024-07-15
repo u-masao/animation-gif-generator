@@ -89,7 +89,7 @@ def create_control_panel(control_panel):
         )
 
     with control_panel.container(border=True):
-        draw_particle = st.checkbox("パーティクルを表示する", value=True)
+        draw_particle = st.checkbox("パーティクルを表示する", value=False)
 
     return (
         text_input,
