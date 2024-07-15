@@ -3,6 +3,7 @@
 Streamlit で動作します。
 """
 
+import inspect
 import sys
 import time
 from pathlib import Path
@@ -118,6 +119,29 @@ def create_control_panel(control_panel):
     )
 
 
+def list_configure():
+    controls = [
+        Animation,
+        FillDrawer,
+        CircleMoveTextDrawer,
+        CometDrawer,
+        ParticleDrawer,
+        RandomParticleDrawer,
+    ]
+
+    return  # for debug
+
+    for control in controls:
+        st.write(f"class {control.__name__}")
+        signature = inspect.signature(control.__init__)
+        for name, param in signature.parameters.items():
+            st.write(
+                f"name: {name}, "
+                f"annotation: {param.annotation}, "
+                f"default: {param.default}"
+            )
+
+
 def main():
 
     # タイトルを描画
@@ -149,7 +173,7 @@ def main():
     # 背景を描画
     drawers.append(FillDrawer(color=bg_color))
 
-    # ランダム粒子を描画
+    # 彗星を描画
     if draw_comet:
         drawers.append(CometDrawer(bg_color=hex_to_rgba(bg_color)))
 
@@ -189,6 +213,8 @@ def main():
 
     # 画面出力
     create_main_panel(main_panel, gif_bytes, text_input, render_period)
+
+    list_configure()
 
 
 if __name__ == "__main__":
