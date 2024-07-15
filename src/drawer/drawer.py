@@ -326,26 +326,6 @@ class ParticleDrawer(Drawer):
         self.velocities[:, 2] *= max_particle_size
         self.velocities[:, 3] *= angle_velocity
 
-    def make_star_polygon(
-        self,
-        center_x: int,
-        center_y: int,
-        tip_count: int = 5,
-        radius: float = 30.0,
-        angle: float = np.pi / 2.0,
-    ):
-
-        points = []
-
-        for i in range(tip_count * 2):
-            r = radius if i % 2 == 0 else radius * 0.4
-            x = center_x + r * np.cos(angle)
-            y = center_y + r * np.sin(angle)
-            points.append((x, y))
-            angle += np.pi / tip_count
-
-        return points
-
     def draw(self, animation: Animation) -> None:
         """
         ランダムな場所にランダムなサイズの粒子を表示する
@@ -362,7 +342,7 @@ class ParticleDrawer(Drawer):
 
                 if self.shape == "star":
                     # 星型のポリゴンを計算
-                    polygon_data = self.make_star_polygon(
+                    polygon_data = make_star_polygon(
                         center_x=point[0] * frame.width,
                         center_y=point[1] * frame.height,
                         tip_count=self.tip_count,
@@ -388,3 +368,24 @@ class ParticleDrawer(Drawer):
 
             # 粒子を移動
             self.points += self.velocities
+
+
+def make_star_polygon(
+    center_x: int,
+    center_y: int,
+    tip_count: int = 5,
+    radius: float = 30.0,
+    angle: float = np.pi / 2.0,
+    inside_corner_ratio: float = 0.4,
+):
+
+    points = []
+
+    for i in range(tip_count * 2):
+        r = radius if i % 2 == 0 else radius * inside_corner_ratio
+        x = center_x + r * np.cos(angle)
+        y = center_y + r * np.sin(angle)
+        points.append((x, y))
+        angle += np.pi / tip_count
+
+    return points
