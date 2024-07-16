@@ -425,7 +425,6 @@ class ParticleDrawer(Drawer):
         """
         ランダムな場所にランダムなサイズの粒子を表示する
         """
-        from src.drawer.comet_drawer import DrawableParticle
 
         # フレームごとに処理
         for frame_index, frame in enumerate(animation.frames):
