@@ -28,7 +28,6 @@ def hex_to_rgba(hex_color):
 
     rgba_color = to_rgba(hex_color)
     rgba_tuple = tuple(int(x * 255) for x in rgba_color)
-
     return rgba_tuple
 
 
@@ -93,7 +92,7 @@ def create_control_panel(control_panel):
     with control_panel.container(border=True):
         cols = st.columns(3)
         radius = cols[0].slider(
-            "移動半径:", min_value=0, max_value=64, value=8, step=4
+            "移動半径:", min_value=0, max_value=64, value=8, step=1
         )
         fps = cols[1].slider(
             "フレームレート:", min_value=1, max_value=20, value=10
@@ -199,8 +198,9 @@ def main():
 
     ts_start = time.perf_counter()
     # Animation インスタンスを初期化
-    animation = Animation(frame_count=frame_count)
-
+    animation = Animation(
+        frame_count=frame_count, bg_color=hex_to_rgba(bg_color)
+    )
     # drawer を追加
     animation.add_drawers(drawers)
 
