@@ -312,3 +312,155 @@ class CometDrawer(Drawer):
 
             # Nucleus を更新して新しい CometDust を追加
             self.dusts += self.nucleus.update(self.delta_time)
+
+
+class RandomParticleDrawer(Drawer):
+    """
+    ランダムな粒子を描画する
+    """
+
+    def __init__(
+        self,
+        particle_count: int = 20,
+        max_particle_size: int = 10,
+        color_low: int = 192,
+        color_high: int = 255,
+    ):
+        """
+        コンストラクタ
+        """
+        super().__init__()
+        self.particle_count = particle_count
+        self.max_particle_size = max_particle_size
+        self.color_low = color_low
+        self.color_high = color_high
+
+    def draw(self, animation: Animation) -> None:
+        """
+        ランダムな場所にランダムなサイズの粒子を表示する
+        """
+
+        # 下限値
+        low = np.array(
+            [0, 0, 1, self.color_low, self.color_low, self.color_low]
+        )
+
+        # 上限値
+        high = np.array(
+            [
+                animation.frame_width,
+                animation.frame_height,
+                self.max_particle_size,
+                self.color_high,
+                self.color_high,
+                self.color_high,
+            ]
+        )
+
+        # フレームごとに処理
+        for frame in animation.frames:
+
+            # ランダム値を生成
+            params = np.random.randint(
+                low[:, np.newaxis],
+                high[:, np.newaxis],
+                size=(6, self.particle_count),
+                dtype=int,
+            ).T
+
+            # フレームから ImageDraw を取得
+            draw = ImageDraw.Draw(frame)
+            for param in params:
+
+                # 座標計算など
+                size = param[2]
+                x = param[0] - size // 2
+                y = param[1] - size // 2
+                color = (param[3], param[4], param[5])
+
+                # 描画
+                draw.ellipse((x, y, x + size, y + size), fill=color)
+
+
+class ParticleDrawer(Drawer):
+    """
+    星を描画する。
+    フレームごとに場所は変えず、角度がかわる
+    """
+
+    def __init__(
+        self,
+        particle_count: int = 20,
+        max_particle_size: int = 30,
+        shape: str = "star",
+        tip_count: int = 5,
+        color: Tuple[int, int, int, int] = (255, 255, 0, 255),  # yellow
+        velocity_mean: float = 0.0,
+        velocity_sigma: float = 0.05,
+        angle_velocity: float = 0.2,
+    ):
+        """
+        コンストラクタ
+        """
+        super().__init__()
+        self.particle_count = particle_count
+        self.max_particle_size = max_particle_size
+        self.color = color
+        self.tip_count = tip_count
+        self.shape = shape
+
+        # 初期位置
+        self.points = np.random.rand(particle_count, 4)
+        self.points[:, 2] *= max_particle_size
+        self.points[:, 3] = np.random.randn(particle_count) * angle_velocity
+
+        # 変化速度
+        self.velocities = (
+            np.random.randn(particle_count, 4) * velocity_sigma + velocity_mean
+        )
+        self.velocities[:, 2] *= max_particle_size
+        self.velocities[:, 3] *= angle_velocity
+
+    def draw(self, animation: Animation) -> None:
+        """
+        ランダムな場所にランダムなサイズの粒子を表示する
+        """
+        from src.drawer.comet_drawer import DrawableParticle
+
+        # フレームごとに処理
+        for frame_index, frame in enumerate(animation.frames):
+
+            # フレームから ImageDraw を取得
+            draw = ImageDraw.Draw(frame)
+
+            # 粒子毎に処理
+            for point in self.points:
+
+                if self.shape == "star":
+                    # 星型のポリゴンを計算
+                    polygon_data = DrawableParticle.make_star_polygon(
+                        center_x=point[0] * frame.width,
+                        center_y=point[1] * frame.height,
+                        tip_count=self.tip_count,
+                        radius=point[2],
+                        angle=2 * np.pi * point[3],
+                    )
+
+                    # ポリゴンを描画
+                    draw.polygon(
+                        polygon_data, fill=self.color, outline=self.color
+                    )
+                elif self.shape == "circle":
+                    # 円を描画
+                    draw.circle(
+                        (point[0] * frame.width, point[1] * frame.height),
+                        np.abs(point[2]),
+                        fill=self.color,
+                    )
+                else:
+                    ValueError(
+                        f"その shape はサポートしていません。: {self.shape}"
+                    )
+
+            # 粒子を移動
+            self.points += self.velocities
