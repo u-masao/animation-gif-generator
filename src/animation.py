@@ -21,7 +21,7 @@ class Animation:
         frame_width: int = 128,
         frame_height: int = 128,
         frame_count: int = 1,
-        color: Tuple[int] = (255, 255, 255, 0),
+        bg_color: Tuple[int] = (0, 0, 0, 255),
     ):
         """
         コンストラクタ
@@ -39,7 +39,7 @@ class Animation:
         self.frame_count = 0
         self.frame_width = frame_width
         self.frame_height = frame_height
-        self.color = color
+        self.bg_color = bg_color
         self.drawers = []
 
         # make frames
@@ -57,9 +57,7 @@ class Animation:
         フレームを追加
         """
         self.frames.append(
-            Image.new(
-                "RGBA", (self.frame_width, self.frame_height), color=self.color
-            )
+            Image.new("RGBA", (self.frame_width, self.frame_height))
         )
         self._update_frame_count()
 
