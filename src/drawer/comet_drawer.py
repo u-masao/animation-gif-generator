@@ -22,6 +22,10 @@ from src.drawer.drawer import Drawer
 
 
 class DrawableParticle:
+    """
+    描画可能な粒子のクラス
+    """
+
     def __init__(
         self,
         size: float = 3.0,
@@ -37,14 +41,25 @@ class DrawableParticle:
         star_tip_count: int = 4,
         shape: str = "star",
     ):
+        """
+        コンストラクタ
+        """
+
+        # サイズ
         self.size = size
+
+        # 位置関係
         self.position = np.array(position)
         self.velocity = np.array(velocity)
         self.acceralation = np.array(acceralation)
+
+        # 明るさと色
         self.brightness = brightness
         self.brightness_change_ratio = brightness_change_ratio
         self.color = color
         self.bg_color = bg_color
+
+        # 角度
         self.angle = (
             2.0 * np.pi * np.random.randn(1) if angle is None else angle
         )
@@ -53,16 +68,24 @@ class DrawableParticle:
             if angular_velocity is None
             else angular_velocity
         )
+
+        # 形
         self.star_tip_count = star_tip_count
         self.shape = shape
 
     def update(self, delta_time: float):
+        """
+        更新
+        """
         self.velocity += self.acceralation * delta_time
         self.position += self.velocity * delta_time
         self.angle += self.angular_velocity * delta_time
         self.brightness *= self.brightness_change_ratio
 
     def calc_position_in_frame(self, frame: Image):
+        """
+        座標変換
+        """
         return self.position[0:2] * np.array([frame.width, frame.height])
 
     @staticmethod
@@ -74,32 +97,44 @@ class DrawableParticle:
         angle: float = np.pi / 2.0,
         inside_corner_ratio: float = 0.4,
     ):
-
+        """
+        星型のポリゴンを生成するメソッド
+        """
         points = []
-
         for i in range(tip_count * 2):
             r = radius if i % 2 == 0 else radius * inside_corner_ratio
             x = center_x + r * np.cos(angle)
             y = center_y + r * np.sin(angle)
-            points.append((x, y))
+            points.append((x.item(), y.item()))
             angle += np.pi / tip_count
-
         return points
 
-    def calc_draw_color(self):
+    def calc_draw_color(self) -> Tuple[int]:
+        """
+        明るさに応じてグラデーションを計算
+        """
         fg_color = np.array(self.color)
         bg_color = np.array(self.bg_color)
 
+        # グラデーション
         draw_color = (fg_color - bg_color) * self.brightness + bg_color
+
+        # 型変換
         draw_color = [int(x) for x in draw_color]
+
+        # アルファチャンネルを不透過
         draw_color[3] = 255
 
+        # タプルを返す
         return tuple(draw_color)
 
     def draw_particle(
         self,
         frame: Image,
     ):
+        """
+        粒子を描画する
+        """
         draw = ImageDraw.Draw(frame)
         position_in_frame = self.calc_position_in_frame(frame)
         color = self.calc_draw_color()
@@ -173,9 +208,9 @@ class Nucleus(DrawableParticle):
         super().update(delta_time)
 
         # ポワソン分布に基づいた乱数で作成する塵の数を決める
-        dust_count = int(
-            np.random.poisson(self.dust_genarate_prob * delta_time, 1)
-        )
+        dust_count = np.random.poisson(
+            self.dust_genarate_prob * delta_time, 1
+        ).item()
 
         # 塵を生成する
         comet_dusts = []
