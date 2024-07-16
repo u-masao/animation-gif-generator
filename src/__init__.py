@@ -4,12 +4,8 @@ from src.drawer.comet_drawer import (
     ParticleDrawer,
     RandomParticleDrawer,
 )
-from src.drawer.drawer import (
-    CircleMoveTextDrawer,
-    Drawer,
-    FillDrawer,
-    TextDrawer,
-)
+from src.drawer.drawer import Drawer, FillDrawer
+from src.drawer.text_drawer import CircleMoveTextDrawer, TextDrawer
 
 __all__ = [
     Animation,
